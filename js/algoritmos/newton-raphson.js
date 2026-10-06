@@ -28,7 +28,6 @@
     unidad: 'Raíces de ecuaciones',
     resumen: 'Método abierto que, desde un valor inicial x₀, sigue la recta tangente a f hasta el eje x. Converge cuadráticamente cerca de una raíz simple.',
     tags: ['Método abierto', 'Convergencia cuadrática', 'Usa la derivada'],
-    apunte: 'assets/apuntes/newton-raphson.jpg',
     ejecutar: newtonRaphson,
 
     icono: `
@@ -70,44 +69,6 @@
       <div class="gap"></div>
       <div>• <span class="kw">Si</span> \(n = M\), <span class="kw">entonces</span></div>
       <div class="ind1">Salida (Fracaso) &nbsp;<span class="stop">[PARE]</span></div>`,
-
-    teoria: String.raw`
-      <h3>Idea del método</h3>
-      <p>En lugar de encerrar la raíz en un intervalo, Newton-Raphson parte de un único valor \(x_0\) y reemplaza a \(f\)
-      por su <b>recta tangente</b> en ese punto. El corte de la tangente con el eje \(x\) es la siguiente aproximación.</p>
-      <h3>Deducción de la fórmula</h3>
-      <p>Con el polinomio de Taylor de grado 1 alrededor de \(x_n\):</p>
-      $$f(x) \approx f(x_n) + f'(x_n)\,(x - x_n).$$
-      <p>Si buscamos \(f(x) = 0\) y llamamos \(x_{n+1}\) a la solución de la aproximación:</p>
-      $$0 = f(x_n) + f'(x_n)\,(x_{n+1} - x_n) \quad\Longrightarrow\quad x_{n+1} = x_n - \frac{f(x_n)}{f'(x_n)}.$$
-      <h3>Criterio de parada</h3>
-      <p>El apunte usa el <b>error absoluto</b> entre aproximaciones consecutivas, \(e_{n+1} = |x_{n+1} - x_n| < \varepsilon\)
-      (en regla falsa se usaba el error relativo). Si se completan las \(M\) iteraciones sin cumplirlo, termina con fracaso.</p>
-      <h3>Convergencia cuadrática</h3>
-      <p>Si \(p\) es una raíz <b>simple</b> (\(f'(p) \neq 0\)), \(f''\) es continua y \(x_0\) está suficientemente cerca de \(p\):</p>
-      $$|x_{n+1} - p| \approx \left|\frac{f''(p)}{2\,f'(p)}\right|\,|x_n - p|^2.$$
-      <p>En la práctica, el número de cifras correctas <b>se duplica</b> en cada iteración. En la gráfica
-      “Orden de convergencia” del simulador los puntos siguen la recta de <b>pendiente 2</b>.</p>
-      <h3>Cuándo falla</h3>
-      <ul>
-        <li><b>Tangente horizontal:</b> si \(f'(x_n) = 0\), la fórmula divide entre cero (ejemplo \(x^2 - 4\) con \(x_0 = 0\)).</li>
-        <li><b>Ciclos:</b> con \(x^3 - 2x + 2\) y \(x_0 = 0\), las iteraciones saltan entre 0 y 1 para siempre.</li>
-        <li><b>Divergencia:</b> con \(\arctan(x - 1)\) y \(x_0 = 2.5\), cada tangente lanza el punto más lejos.</li>
-        <li><b>Raíces múltiples:</b> si \(f'(p) = 0\) (como en \((x-1)^2(x+2)\)), sigue convergiendo pero solo de forma <b>lineal</b>.</li>
-      </ul>
-      <p>Prueba estos casos en los ejemplos del simulador.</p>
-      <div class="pros">
-        <div class="box p"><h4>Ventajas</h4><ul>
-          <li>Convergencia cuadrática: muy pocas iteraciones.</li>
-          <li>Solo necesita un valor inicial, no un intervalo con cambio de signo.</li>
-          <li>Se generaliza a sistemas de ecuaciones no lineales.</li>
-        </ul></div>
-        <div class="box c"><h4>Desventajas</h4><ul>
-          <li>Necesita la derivada \(f'\), que no siempre es fácil de obtener.</li>
-          <li>No tiene convergencia garantizada: depende de \(x_0\).</li>
-          <li>Falla si \(f'(x_n) = 0\) y se vuelve lento en raíces múltiples.</li>
-        </ul></div>
-      </div>`,
 
     python: `def newton_raphson(f, df, x0, tol, M):
     """Algoritmo de Newton-Raphson.

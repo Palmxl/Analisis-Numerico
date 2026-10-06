@@ -65,9 +65,7 @@
     const tabs = [
       ['simulador', 'Simulador'],
       ['pseudocodigo', 'Pseudocódigo'],
-      ['teoria', 'Teoría'],
       ['python', 'Código Python'],
-      a.apunte ? ['apunte', 'Apunte original'] : null,
     ].filter(Boolean);
     const activa = tabs.some(t => t[0] === tabInicial) ? tabInicial : 'simulador';
 
@@ -85,11 +83,9 @@
       </div>
       <section class="panel" data-panel="simulador" id="sim"></section>
       <section class="panel" data-panel="pseudocodigo"><div class="pseudo">${a.pseudocodigo}</div></section>
-      <section class="panel" data-panel="teoria"><div class="box theory">${a.teoria || ''}</div></section>
       <section class="panel" data-panel="python">
         <pre class="code"><button class="copy-btn" id="copy">Copiar</button><code>${NA.resaltarPython(a.python || '')}</code></pre>
-      </section>
-      ${a.apunte ? `<section class="panel apunte" data-panel="apunte">${[].concat(a.apunte).map((src, i, arr) => `<img src="${src}" alt="Apunte original de ${a.nombre}${arr.length > 1 ? ` (página ${i + 1})` : ''}">`).join('')}</section>` : ''}`;
+      </section>`;
 
     const activar = k => {
       app.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === k));
@@ -100,7 +96,6 @@
     activar(activa);
 
     NA.renderMath(app.querySelector('[data-panel=pseudocodigo]'));
-    NA.renderMath(app.querySelector('[data-panel=teoria]'));
 
     const copy = document.getElementById('copy');
     copy.addEventListener('click', () => {

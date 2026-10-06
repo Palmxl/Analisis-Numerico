@@ -35,7 +35,6 @@
     unidad: 'Raíces de ecuaciones',
     resumen: 'Método cerrado que parte el intervalo [a, b] por la mitad en cada paso y conserva la mitad donde f cambia de signo.',
     tags: ['Método cerrado', 'Convergencia lineal', 'Cota de error conocida'],
-    apunte: ['assets/apuntes/biseccion-1.jpg', 'assets/apuntes/biseccion-2.jpg'],
     ejecutar: biseccion,
 
     icono: `
@@ -77,40 +76,6 @@
       <div><span class="kw">Paso 7:</span> Salida (Fracaso) &nbsp;<span class="stop">[PARE]</span></div>
       <div class="gap"></div>
       <div class="cm">Nota: en el paso 4, \(a\) y \(b\) son los extremos iniciales y \(n = i\); \(\frac{b_0 - a_0}{2^i}\) es justamente la mitad del intervalo actual.</div>`,
-
-    teoria: String.raw`
-      <h3>Idea del método</h3>
-      <p>Si \(f\) es continua en \([a, b]\) y \(f(a)\) y \(f(b)\) tienen signos opuestos, el <b>teorema del valor intermedio</b>
-      garantiza que existe al menos una raíz \(p\) en \((a, b)\). Bisección toma el punto medio, revisa en qué mitad sigue
-      habiendo cambio de signo y descarta la otra. Repetir esto encierra la raíz en intervalos cada vez más pequeños.</p>
-      <h3>¿Por qué \(a + \frac{b-a}{2}\) y no \(\frac{a+b}{2}\)?</h3>
-      <p>Matemáticamente son iguales, pero en aritmética de punto flotante \(a + \frac{b-a}{2}\) es más segura: cuando \(a\) y
-      \(b\) están muy cerca, \(\frac{a+b}{2}\) puede caer <b>fuera</b> del intervalo por redondeo.</p>
-      <h3>Cota del error</h3>
-      <p>Después de \(n\) pasos el intervalo mide \(\frac{b-a}{2^{n-1}}\) y \(p_n\) es su punto medio, así que</p>
-      $$|p_n - p| \le \frac{b - a}{2^n}.$$
-      <p>Ese es exactamente el criterio del paso 4: cuando \(\frac{b-a}{2^n} < \varepsilon\), el error <b>real</b> ya es menor
-      que \(\varepsilon\). A diferencia de los otros métodos, aquí el criterio de parada sí garantiza la precisión.</p>
-      <h3>Número de iteraciones necesarias</h3>
-      <p>Como la cota no depende de \(f\), se puede saber de antemano cuántas iteraciones hacen falta:</p>
-      $$\frac{b - a}{2^n} < \varepsilon \quad\Longleftrightarrow\quad n > \log_2\!\left(\frac{b - a}{\varepsilon}\right).$$
-      <p>Por ejemplo, con \([1, 2]\) y \(\varepsilon = 10^{-4}\) se necesitan \(n \ge 14\) iteraciones, sin importar la función.
-      El simulador muestra este valor como “Iteraciones teóricas”.</p>
-      <h3>Convergencia</h3>
-      <p>La convergencia es <b>lineal</b> con razón \(C = \tfrac12\): cada paso gana exactamente un bit (≈ 0.3 cifras decimales)
-      de precisión. Es lenta comparada con Newton-Raphson, pero nunca falla si hay cambio de signo.</p>
-      <div class="pros">
-        <div class="box p"><h4>Ventajas</h4><ul>
-          <li>Siempre converge si \(f(a)f(b) < 0\).</li>
-          <li>Cota de error garantizada y número de iteraciones conocido de antemano.</li>
-          <li>Solo necesita evaluar \(f\) (ni derivadas ni nada más).</li>
-        </ul></div>
-        <div class="box c"><h4>Desventajas</h4><ul>
-          <li>Convergencia lenta (lineal, \(C = \tfrac12\)).</li>
-          <li>Necesita un intervalo con cambio de signo: no encuentra raíces dobles como \(x^2 = 0\).</li>
-          <li>Si hay varias raíces en \([a, b]\), solo encuentra una.</li>
-        </ul></div>
-      </div>`,
 
     python: `def biseccion(f, a, b, tol, M):
     """Algoritmo (Tarea 1) de Bisección.

@@ -28,7 +28,6 @@
     unidad: 'Raíces de ecuaciones',
     resumen: 'Método cerrado que aproxima la raíz con el corte de la recta secante entre (aₙ, f(aₙ)) y (bₙ, f(bₙ)).',
     tags: ['Método cerrado', 'Convergencia lineal', 'Siempre converge'],
-    apunte: 'assets/apuntes/regla-falsa.jpg',
     ejecutar: reglaFalsa,   // expuesto para que otros métodos se comparen con este
 
     icono: `
@@ -71,46 +70,6 @@
       <div class="ind3">\(b_{n+1} = b_n\)</div>
       <div class="gap"></div>
       <div>• <span class="kw">Si</span> \(n = M\), <span class="kw">entonces</span> Salida (Fracaso) &nbsp;<span class="stop">[PARE]</span></div>`,
-
-    teoria: String.raw`
-      <h3>Idea del método</h3>
-      <p>Igual que bisección, la regla falsa parte de un intervalo \([a_0, b_0]\) donde \(f\) cambia de signo, así que por el
-      teorema del valor intermedio hay al menos una raíz \(p\) dentro. La diferencia está en <b>cómo se elige el punto nuevo</b>:
-      en lugar del punto medio, se toma el corte con el eje \(x\) de la recta que une \((a_n, f(a_n))\) y \((b_n, f(b_n))\).</p>
-      <h3>Deducción de la fórmula</h3>
-      <p>La recta secante que pasa por los dos extremos es</p>
-      $$y - f(b_n) = \frac{f(b_n) - f(a_n)}{b_n - a_n}\,(x - b_n).$$
-      <p>Haciendo \(y = 0\) y despejando \(x\):</p>
-      $$x_n = b_n - f(b_n)\,\frac{b_n - a_n}{f(b_n) - f(a_n)} = \frac{a_n\,f(b_n) - b_n\,f(a_n)}{f(b_n) - f(a_n)}.$$
-      <p>Después se conserva el subintervalo donde sigue habiendo cambio de signo: si \(f(x_n)f(a_n) < 0\) la raíz está en
-      \([a_n, x_n]\); si no, en \([x_n, b_n]\).</p>
-      <h3>Criterio de parada</h3>
-      <p>El apunte usa el <b>error relativo</b> entre dos aproximaciones consecutivas,
-      \(\left|\frac{x_n - x_{n-1}}{x_n}\right| < \varepsilon\), que solo se puede calcular cuando \(n > 0\) y \(x_n \neq 0\).
-      Si se llega a \(M\) iteraciones sin cumplirlo, el algoritmo termina con fracaso.</p>
-      <p><b>Ojo:</b> este criterio mide cuánto cambió la aproximación, no qué tan lejos está de \(p\). Si la convergencia es
-      muy lenta, los pasos son pequeños y el algoritmo puede detenerse aunque el error real sea mayor que \(arepsilon\)
-      (con \(x^{10} - 1\) y \(arepsilon = 10^{-6}\) se detiene en \(p pprox 0.9999975\)).</p>
-      <h3>Convergencia</h3>
-      <p>Si \(f\) es continua y \(f(a_0)f(b_0) < 0\), la sucesión \(x_n\) <b>siempre converge</b> a una raíz. Sin embargo, cuando
-      \(f\) es convexa (o cóncava) en el intervalo, uno de los extremos queda <b>fijo</b> para siempre y la convergencia es
-      solo <b>lineal</b>:</p>
-      $$|x_{n+1} - p| \approx C\,|x_n - p|, \qquad 0 < C < 1.$$
-      <p>Por eso el ancho \(b_n - a_n\) <b>no tiende a cero</b> (a diferencia de bisección); lo puedes ver en la gráfica
-      “Ancho del intervalo” del simulador. Prueba el ejemplo \(x^{10} - 1\) para ver un caso donde la regla falsa es incluso
-      más lenta que bisección.</p>
-      <div class="pros">
-        <div class="box p"><h4>Ventajas</h4><ul>
-          <li>Convergencia garantizada (método cerrado).</li>
-          <li>No necesita la derivada.</li>
-          <li>Suele ser más rápida que bisección cuando \(f\) es casi lineal cerca de la raíz.</li>
-        </ul></div>
-        <div class="box c"><h4>Desventajas</h4><ul>
-          <li>Convergencia solo lineal.</li>
-          <li>Un extremo puede quedar estancado, haciendo el método muy lento.</li>
-          <li>Requiere un intervalo inicial con cambio de signo.</li>
-        </ul></div>
-      </div>`,
 
     python: `def regla_falsa(f, a, b, tol, M):
     """Algoritmo de la Regla Falsa.
