@@ -354,3 +354,80 @@ pre.code {
 .switch { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--text-2); cursor: pointer; user-select: none; }
 .switch input { accent-color: var(--ink); width: 15px; height: 15px; }
 .apunte img + img { margin-top: 20px; }
+
+/* ============ Ajustes móviles ============ */
+/* Tablas anchas: la primera columna queda fija al desplazar horizontalmente */
+.table-wrap td:first-child, .table-wrap th:first-child { position: sticky; left: 0; z-index: 1; }
+.table-wrap td:first-child { background: var(--surface); }
+.table-wrap th:first-child { z-index: 2; }
+tbody tr:hover td:first-child { background: var(--surface-2); }
+tbody tr.sel td:first-child { background: color-mix(in srgb, var(--s1) 14%, var(--surface)); }
+.table-wrap { -webkit-overflow-scrolling: touch; }
+
+@media (max-width: 960px) {
+  .algo-head { padding-bottom: 16px; }
+}
+
+@media (max-width: 600px) {
+  /* 16px evita que iOS haga zoom al tocar un campo */
+  .field input, .field select { font-size: 16px; padding: 10px 12px; }
+  .btn { padding: 13px; font-size: 15px; }
+
+  /* Pestañas deslizables con borde desvanecido como pista */
+  .tabs {
+    margin: 0 -16px 20px; padding: 0 16px;
+    scroll-snap-type: x proximity;
+    -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent);
+            mask-image: linear-gradient(90deg, #000 85%, transparent);
+  }
+  .tab { padding: 10px 11px; font-size: 13.5px; scroll-snap-align: start; }
+
+  .box { padding: 16px; }
+  .box-title { font-size: 17px; }
+  .result-banner { padding: 12px 14px; font-size: 14px; }
+  .result-banner .mono { word-break: break-all; }
+
+  .stats { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat { padding: 10px 12px; }
+  .stat .v { font-size: 14.5px; }
+
+  .plot-wrap { height: 280px; }
+  .plot-wrap.sm { height: 230px; }
+  .legend { gap: 6px 12px; font-size: 12px; }
+
+  .stepper { gap: 8px; }
+  .stepper button { width: 42px; height: 42px; }
+  .stepper input[type=range] { flex-basis: 100%; order: 2; height: 28px; }
+  .stepper .lbl { margin-left: auto; min-width: 0; }
+
+  /* Tarjeta de iteración: una fila por dato, etiqueta a la izquierda y valor a la derecha */
+  .iter-card { grid-template-columns: 1fr; gap: 4px; }
+  .iter-card div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 7px 10px; }
+  .iter-card div div { display: block; padding: 0; background: none; }
+  .iter-card .v { font-size: 12.5px; text-align: right; }
+
+  table { font-size: 12px; }
+  th, td { padding: 7px 9px; }
+
+  .pseudo h3 { font-size: 19px; }
+  pre.code { padding: 18px 14px; font-size: 12.5px; }
+  .copy-btn { top: 8px; right: 8px; }
+  .theory { font-size: 15px; }
+  .theory h3 { font-size: 19px; }
+
+  .hero h1 { font-size: 32px; }
+  .hero p { font-size: 15.5px; }
+  .unit-head h2 { font-size: 20px; }
+  .cards { grid-template-columns: 1fr; }
+  .crumbs { padding-top: 18px; }
+}
+
+@media (max-width: 330px) {
+  .stats { grid-template-columns: 1fr; }
+  .brand-text { font-size: 15px; }
+}
+
+/* En pantallas táctiles no hay hover: sin saltos de tarjeta */
+@media (hover: none) {
+  .card:hover { transform: none; }
+}

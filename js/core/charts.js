@@ -17,7 +17,7 @@ NA.charts = {
   aplicarDefaults() {
     const t = this.tema();
     Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
-    Chart.defaults.font.size = 12;
+    Chart.defaults.font.size = innerWidth < 600 ? 11 : 12;
     Chart.defaults.color = t.muted;
     Chart.defaults.borderColor = t.border;
     Chart.defaults.animation.duration = 250;
