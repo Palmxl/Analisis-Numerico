@@ -23,4 +23,3 @@ assets/apuntes/*.jpg       foto del apunte original
    Usa `regla-falsa.js` como plantilla.
 2. Agrega `<script src="js/algoritmos/<id>.js"></script>` en `index.html`.
 3. Guarda la foto del apunte en `assets/apuntes/`.
-# Analisis-Numerico
