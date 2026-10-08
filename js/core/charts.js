@@ -9,7 +9,7 @@ NA.charts = {
       text: v('--text'), text2: v('--text-2'), muted: v('--muted'),
       border: v('--border'), borderStrong: v('--border-strong'),
       surface: v('--surface'), surface2: v('--surface-2'),
-      s1: v('--s1'), s1soft: v('--s1-soft'), s2: v('--s2'), s2soft: v('--s2-soft'), s3: v('--s3'), s3soft: v('--s3-soft'),
+      s1: v('--s1'), s1soft: v('--s1-soft'), s2: v('--s2'), s2soft: v('--s2-soft'), s3: v('--s3'), s3soft: v('--s3-soft'), s4: v('--s4'), s4soft: v('--s4-soft'), s5: v('--s5'), s5soft: v('--s5-soft'),
       ink: v('--ink'), hl: v('--hl'), curve: v('--curve'),
     };
   },

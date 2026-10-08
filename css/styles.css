@@ -20,6 +20,10 @@
   --s2-soft: rgba(235, 104, 52, .12);
   --s3: #1baf7a;           /* serie 3: Bisección */
   --s3-soft: rgba(27, 175, 122, .12);
+  --s4: #4a3aa7;           /* serie 4: Punto fijo */
+  --s4-soft: rgba(74, 58, 167, .12);
+  --s5: #c2477a;           /* serie 5: Secante */
+  --s5-soft: rgba(194, 71, 122, .12);
   --curve: #2b2e33;
   --good: #12805c;
   --bad: #c43c3c;
@@ -51,6 +55,10 @@
     --s2-soft: rgba(217, 89, 38, .16);
     --s3: #199e70;
     --s3-soft: rgba(25, 158, 112, .16);
+    --s4: #9085e9;
+    --s4-soft: rgba(144, 133, 233, .16);
+    --s5: #d55181;
+    --s5-soft: rgba(213, 81, 129, .16);
     --curve: #dfe3e8;
     --good: #3fc493;
     --bad: #ef6b6b;
@@ -78,6 +86,10 @@
   --s2-soft: rgba(217, 89, 38, .16);
   --s3: #199e70;
   --s3-soft: rgba(25, 158, 112, .16);
+  --s4: #9085e9;
+  --s4-soft: rgba(144, 133, 233, .16);
+  --s5: #d55181;
+  --s5-soft: rgba(213, 81, 129, .16);
   --curve: #dfe3e8;
   --good: #3fc493;
   --bad: #ef6b6b;
@@ -414,4 +426,59 @@ tbody tr.sel td:first-child { background: color-mix(in srgb, var(--s1) 14%, var(
 /* En pantallas táctiles no hay hover: sin saltos de tarjeta */
 @media (hover: none) {
   .card:hover { transform: none; }
+}
+
+/* ============ Matrices (sistemas lineales) ============ */
+.lu-form { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 24px; align-items: start; margin-top: 8px; }
+.lu-editor { min-width: 0; overflow-x: auto; padding-bottom: 4px; }
+.mat-editor { display: inline-flex; gap: 14px; align-items: flex-start; }
+.mat-col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.mat-label { font-family: var(--serif); font-style: italic; font-size: 17px; color: var(--ink); }
+.mat-grid {
+  display: grid; grid-template-columns: repeat(var(--n), 64px); gap: 6px;
+  padding: 8px 10px; border-left: 2px solid var(--text-2); border-right: 2px solid var(--text-2); border-radius: 8px;
+}
+.mat-grid.b-grid { grid-template-columns: 64px; }
+.mat-grid .cell {
+  width: 64px; padding: 7px 6px; text-align: center; border-radius: 7px;
+  border: 1px solid var(--border); background: var(--surface-2); color: var(--text);
+  font-family: var(--mono); font-size: 13.5px;
+}
+.mat-grid .cell:focus { outline: 2px solid var(--ink-soft); border-color: var(--ink); }
+.mat-grid .cell.b { border-color: var(--border-strong); }
+.mat-grid .cell.invalido { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 10%, transparent); }
+
+.mats { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; overflow-x: auto; padding: 4px 2px 8px; }
+.matriz-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.matriz-nombre { font-family: var(--serif); font-style: italic; font-size: 17px; color: var(--text-2); }
+.matriz {
+  border-collapse: separate; border-spacing: 3px; padding: 4px 6px;
+  border-left: 2px solid var(--text-2); border-right: 2px solid var(--text-2); border-radius: 8px;
+}
+.matriz td {
+  font-family: var(--mono); font-size: 12.5px; text-align: center; min-width: 54px; padding: 6px 7px;
+  border-radius: 6px; border: 1px solid transparent; white-space: nowrap; transition: background .2s;
+}
+.matriz td.c-ok { color: var(--text); }
+.matriz td.c-cero { color: var(--muted); opacity: .55; }
+.matriz td.c-pend { color: var(--muted); background: var(--surface-2); }
+.matriz td.c-actual { background: var(--s1-soft); border-color: var(--s1); color: var(--text); font-weight: 600; }
+.matriz td.c-usa { border: 1.5px dashed var(--hl); color: var(--text); }
+.mat-op { font-family: var(--serif); font-size: 22px; color: var(--muted); }
+.paso-texto {
+  margin-top: 12px; padding: 12px 14px; border-radius: 10px; background: var(--surface-2);
+  font-family: var(--mono); font-size: 13px; line-height: 1.8; overflow-x: auto; white-space: nowrap;
+}
+.paso-titulo { font-family: var(--font); font-weight: 600; color: var(--ink); margin-bottom: 2px; }
+
+@media (max-width: 960px) {
+  .lu-form { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 600px) {
+  .mat-grid { grid-template-columns: repeat(var(--n), 52px); gap: 4px; padding: 6px 8px; }
+  .mat-grid.b-grid { grid-template-columns: 52px; }
+  .mat-grid .cell { width: 52px; font-size: 16px; padding: 6px 2px; }
+  .mats { gap: 10px; }
+  .matriz td { min-width: 44px; padding: 5px; font-size: 11.5px; }
+  .paso-texto { font-size: 12px; }
 }

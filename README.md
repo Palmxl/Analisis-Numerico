@@ -11,7 +11,8 @@ css/styles.css             estilos y tema claro/oscuro
 js/core/na.js              registro de algoritmos y utilidades
 js/core/charts.js          gráficas (Chart.js) con los colores del tema
 js/core/raices.js          simulador para métodos cerrados (regla falsa, bisección…)
-js/core/abiertos.js        simulador para métodos abiertos (Newton-Raphson, secante…)
+js/core/abiertos.js        simulador para métodos abiertos (Newton-Raphson, punto fijo, secante…)
+js/core/matrices.js        utilidades de matrices (editor, visualización) para sistemas lineales
 js/algoritmos/*.js         un archivo por algoritmo
 ```
 

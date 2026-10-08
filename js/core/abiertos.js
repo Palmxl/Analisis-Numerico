@@ -3,7 +3,17 @@
    Parten de un valor inicial x₀; opcionalmente se comparan con los métodos
    cerrados si se da un intervalo [a, b] con cambio de signo. */
 NA.raices.montarAbierto = function (root, cfg) {
-  const { presets, ejecutar, nombreCorto, color = 's2', dibujarIteracion, leyendaExtra = '', usaDerivada = true } = cfg;
+  const { presets, ejecutar, nombreCorto, color = 's2', dibujarIteracion, leyendaExtra = '', usaDerivada = true,
+          nombreF = 'f', indice = 'n', x0Label = 'x₀', MLabel = 'M',
+          // f usada por los métodos cerrados de la comparación (punto fijo usa x − g(x))
+          fComparar = f => f,
+          residuo = { etiqueta: '|f(p)|', valor: (f, p) => Math.abs(f(p)) },
+          mensajeExito = 'se obtuvo una aproximación de',
+          textoLineal = 'convergencia <b>lineal</b> (típico de una raíz múltiple, donde f′(p) = 0).',
+          statsExtra = () => '', graficaPrincipal = null,
+          subGrafica = 'Cada paso sigue la recta tangente desde (xₙ, f(xₙ)) hasta el eje x',
+          leyendaPrincipal = null, columnas = null, tarjeta = null, motivosExtra = {},
+          segundo = null /* { label: 'p₁' }: segundo valor inicial */ } = cfg;
   const colorSoft = color + 'soft';
 
   root.innerHTML = `
@@ -19,7 +29,7 @@ NA.raices.montarAbierto = function (root, cfg) {
           </select>
         </div>
         <div class="field">
-          <label><span class="mono">f(x)</span> = función</label>
+          <label><span class="mono">${nombreF}(x)</span> = función</label>
           <input id="fx" spellcheck="false" autocomplete="off">
           <div class="fx-preview" id="fxPrev"></div>
         </div>
@@ -30,20 +40,29 @@ NA.raices.montarAbierto = function (root, cfg) {
           <input id="dfx" spellcheck="false" autocomplete="off">
           <div class="fx-preview" id="dfxPrev"></div>
         </div>` : ''}
+        ${segundo ? `
         <div class="field-row">
-          <div class="field"><label><span class="mono">x₀</span> valor inicial</label><input id="x0" inputmode="decimal"></div>
-          <div class="field"><label><span class="mono">M</span> máx. iter.</label><input id="M" inputmode="numeric"></div>
+          <div class="field"><label><span class="mono">${x0Label}</span> inicial</label><input id="x0" inputmode="decimal"></div>
+          <div class="field"><label><span class="mono">${segundo.label}</span> inicial</label><input id="x1" inputmode="decimal"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label><span class="mono">ε</span> tolerancia</label><input id="tol" inputmode="decimal"></div>
+          <div class="field"><label><span class="mono">${MLabel}</span> máx. iter.</label><input id="M" inputmode="numeric"></div>
+        </div>` : `
+        <div class="field-row">
+          <div class="field"><label><span class="mono">${x0Label}</span> valor inicial</label><input id="x0" inputmode="decimal"></div>
+          <div class="field"><label><span class="mono">${MLabel}</span> máx. iter.</label><input id="M" inputmode="numeric"></div>
         </div>
         <div class="field">
           <label><span class="mono">ε</span> precisión deseada</label><input id="tol" inputmode="decimal">
-        </div>
+        </div>`}
         <div class="sub-sec">
           <div class="sub-title">Comparar con métodos cerrados <span>(opcional)</span></div>
           <div class="field-row">
             <div class="field"><label><span class="mono">a</span></label><input id="ca" inputmode="decimal" placeholder="—"></div>
             <div class="field"><label><span class="mono">b</span></label><input id="cb" inputmode="decimal" placeholder="—"></div>
           </div>
-          <div class="hint">Intervalo con f(a)·f(b) &lt; 0 para correr también regla falsa y bisección.</div>
+          <div class="hint">${cfg.hintComparar || 'Intervalo con f(a)·f(b) &lt; 0 para correr también regla falsa y bisección.'}</div>
         </div>
         <button class="btn" id="run" style="margin-top:14px">Ejecutar algoritmo</button>
         <div class="form-error" id="err"></div>
@@ -53,20 +72,20 @@ NA.raices.montarAbierto = function (root, cfg) {
     </div>`;
 
   const $ = id => root.querySelector('#' + id);
-  const inp = { fx: $('fx'), dfx: $('dfx'), x0: $('x0'), tol: $('tol'), M: $('M'), ca: $('ca'), cb: $('cb') };
+  const inp = { fx: $('fx'), dfx: $('dfx'), x0: $('x0'), x1: $('x1'), tol: $('tol'), M: $('M'), ca: $('ca'), cb: $('cb') };
 
   const preview = (input, el, pre) => {
     if (!input) return;
     try { el.innerHTML = NA.tex(pre + NA.compilar(input.value).tex); }
     catch (e) { el.innerHTML = '<span style="color:var(--muted)">…</span>'; }
   };
-  const previews = () => { preview(inp.fx, $('fxPrev'), 'f(x) = '); preview(inp.dfx, $('dfxPrev'), "f'(x) = "); };
+  const previews = () => { preview(inp.fx, $('fxPrev'), nombreF + '(x) = '); preview(inp.dfx, $('dfxPrev'), "f'(x) = "); };
 
   const cargarPreset = i => {
     const p = presets[i];
     if (!p) return;
     inp.fx.value = p.f; if (inp.dfx) inp.dfx.value = p.df || '';
-    inp.x0.value = p.x0; inp.tol.value = p.tol; inp.M.value = p.M;
+    inp.x0.value = p.x0; if (inp.x1) inp.x1.value = p.x1; inp.tol.value = p.tol; inp.M.value = p.M;
     inp.ca.value = p.a ?? ''; inp.cb.value = p.b ?? '';
     previews();
   };
@@ -92,17 +111,23 @@ NA.raices.montarAbierto = function (root, cfg) {
     $('err').textContent = ''; $('warn').textContent = '';
     let F, DF = null;
     try { F = NA.compilar(inp.fx.value); }
-    catch (e) { $('err').textContent = 'No se pudo leer f(x): ' + e.message; return; }
+    catch (e) { $('err').textContent = `No se pudo leer ${nombreF}(x): ` + e.message; return; }
     if (usaDerivada) {
       try { DF = NA.compilar(inp.dfx.value); }
       catch (e) { $('err').textContent = "No se pudo leer f′(x): " + e.message; return; }
     }
     const x0 = Number(inp.x0.value), tol = Number(inp.tol.value), M = Number(inp.M.value);
-    if (inp.x0.value === '' || ![x0, tol, M].every(isFinite)) { $('err').textContent = 'x₀, ε y M deben ser numéricos.'; return; }
+    if (inp.x0.value === '' || ![x0, tol, M].every(isFinite)) { $('err').textContent = `${x0Label}, ε y ${MLabel} deben ser numéricos.`; return; }
     if (!(tol > 0)) { $('err').textContent = 'La precisión ε debe ser positiva.'; return; }
-    if (!(M >= 1) || !Number.isInteger(M)) { $('err').textContent = 'M debe ser un entero ≥ 1.'; return; }
-    if (M > 100000) { $('err').textContent = 'M es demasiado grande (máx. 100000).'; return; }
-    if (!isFinite(F.f(x0))) { $('err').textContent = 'f no está definida en x₀.'; return; }
+    if (!(M >= 1) || !Number.isInteger(M)) { $('err').textContent = `${MLabel} debe ser un entero ≥ 1.`; return; }
+    if (M > 100000) { $('err').textContent = `${MLabel} es demasiado grande (máx. 100000).`; return; }
+    if (!isFinite(F.f(x0))) { $('err').textContent = `${nombreF} no está definida en ${x0Label}.`; return; }
+    const x1 = segundo ? Number(inp.x1.value) : null;
+    if (segundo) {
+      if (inp.x1.value === '' || !isFinite(x1)) { $('err').textContent = `${segundo.label} debe ser numérico.`; return; }
+      if (x1 === x0) { $('err').textContent = `${x0Label} y ${segundo.label} deben ser distintos.`; return; }
+      if (!isFinite(F.f(x1))) { $('err').textContent = `${nombreF} no está definida en ${segundo.label}.`; return; }
+    }
 
     // ¿f′ es realmente la derivada de f? (comparación con diferencias centrales)
     if (DF) {
@@ -114,31 +139,33 @@ NA.raices.montarAbierto = function (root, cfg) {
       if (malos.length) $('warn').textContent = '⚠ f′(x) no parece ser la derivada de f(x). Revisa o usa "Derivar automáticamente".';
     }
 
-    const correrMetodo = () => usaDerivada ? ejecutar(F.f, DF.f, x0, tol, M) : ejecutar(F.f, x0, tol, M);
+    const correrMetodo = () => usaDerivada ? ejecutar(F.f, DF.f, x0, tol, M)
+      : segundo ? ejecutar(F.f, x0, x1, tol, M) : ejecutar(F.f, x0, tol, M);
     const res = correrMetodo();
     const t = NA.cronometrar(correrMetodo);
-    const xsPropia = [x0, ...res.iter.map(i => i.xn)];
+    const xsPropia = [x0, ...(segundo ? [x1] : []), ...res.iter.map(i => i.xn)];
     const orden = NA.ordenConvergencia(xsPropia);
 
     // Comparación opcional con métodos cerrados
     let comp = null;
     const a = Number(inp.ca.value), b = Number(inp.cb.value);
+    const fc = fComparar(F.f);
     if (inp.ca.value !== '' && inp.cb.value !== '') {
       if (!(a < b) || !isFinite(a) || !isFinite(b)) $('warn').textContent += ' La comparación necesita a < b.';
-      else if (!(F.f(a) * F.f(b) < 0)) $('warn').textContent += ' No hay cambio de signo en [a, b]: se omite la comparación.';
+      else if (!(fc(a) * fc(b) < 0)) $('warn').textContent += ' No hay cambio de signo en [a, b]: se omite la comparación.';
       else {
         const rf = NA.buscar('regla-falsa');
         comp = [
           rf && { nombre: 'Regla falsa', color: 's1', ejecutar: rf.ejecutar },
           { nombre: 'Bisección', color: 's3', ejecutar: NA.raices.biseccion },
         ].filter(Boolean).map(m => {
-          const r = m.ejecutar(F.f, a, b, tol, M);
-          return { ...m, res: r, t: NA.cronometrar(() => m.ejecutar(F.f, a, b, tol, M)), xs: r.iter.map(i => i.x), orden: NA.ordenConvergencia(r.iter.map(i => i.x)) };
+          const r = m.ejecutar(fc, a, b, tol, M);
+          return { ...m, res: r, t: NA.cronometrar(() => m.ejecutar(fc, a, b, tol, M)), xs: r.iter.map(i => i.x), orden: NA.ordenConvergencia(r.iter.map(i => i.x)) };
         });
       }
     }
 
-    estado = { F, DF, x0, tol, M, res, t, orden, xsPropia, comp, k: Math.max(0, res.iter.length - 1), zoom: false };
+    estado = { F, DF, fc, x0, tol, M, res, t, orden, xsPropia, comp, k: Math.max(0, res.iter.length - 1), zoom: false };
     render();
   }
 
@@ -155,7 +182,13 @@ NA.raices.montarAbierto = function (root, cfg) {
       derivada: `f′(x<sub>${N ? N : 0}</sub>) = 0: la recta tangente es horizontal y no corta el eje x.`,
       diverge: 'la sucesión se fue al infinito (divergió).',
       max: `después de ${M} iteraciones no se logró la precisión deseada.`,
+      ...Object.fromEntries(Object.entries(motivosExtra).map(([k, f]) => [k, f(estado)])),
     };
+    const cols = columnas || [
+      ['n', it => it.n], ['xₙ', it => NA.fmt(it.x, 14)], ['f(xₙ)', it => NA.fmt(it.fx, 6)],
+      ...(usaDerivada ? [['f′(xₙ)', it => NA.fmt(it.dfx, 6)]] : []),
+      ['xₙ₊₁', it => NA.fmt(it.xn, 14)], ['eₙ₊₁', it => NA.fmt(it.err, 5)],
+    ];
     const evalTxt = r => r.evalsD !== undefined ? `${r.evals} <small>f</small> + ${r.evalsD} <small>f′</small>` : `${r.evals}`;
 
     out.innerHTML = `
@@ -163,16 +196,17 @@ NA.raices.montarAbierto = function (root, cfg) {
         <div class="result-banner ${res.ok ? 'ok' : 'fail'}">
           <div class="ico">${res.ok ? '✓' : '✕'}</div>
           <div>${res.ok
-            ? `<b>Éxito:</b> se obtuvo una aproximación de p ≈ <span class="mono">${NA.fmt(res.p, 14)}</span>`
+            ? `<b>Éxito:</b> ${mensajeExito} p ≈ <span class="mono">${NA.fmt(res.p, 14)}</span>`
             : `<b>Fracaso:</b> ${motivos[res.motivo] || motivos.max}`}</div>
         </div>
         <div class="stats">
           <div class="stat"><div class="k">Aproximación p</div><div class="v">${NA.fmt(res.p, 12)}</div></div>
           <div class="stat"><div class="k">Iteraciones</div><div class="v">${N} <small>/ ${M}</small></div></div>
           <div class="stat"><div class="k">Error final eₙ₊₁</div><div class="v">${last ? NA.fmt(last.err, 4) : '—'}</div></div>
-          <div class="stat"><div class="k">|f(p)|</div><div class="v">${NA.fmt(Math.abs(F.f(res.p)), 4)}</div></div>
+          <div class="stat"><div class="k">${residuo.etiqueta}</div><div class="v">${NA.fmt(residuo.valor(F.f, res.p), 4)}</div></div>
           <div class="stat"><div class="k">Orden α estimado</div><div class="v">${orden.alpha === null ? '—' : orden.alpha.toFixed(2)}</div></div>
           <div class="stat"><div class="k">Tiempo de ejecución</div><div class="v">${us(t)}</div></div>
+          ${statsExtra(estado)}
         </div>
       </div>
 
@@ -181,15 +215,15 @@ NA.raices.montarAbierto = function (root, cfg) {
         <div class="box-head">
           <div>
             <div class="box-title">Gráfica del método</div>
-            <div class="box-sub">Cada paso sigue la recta tangente desde (xₙ, f(xₙ)) hasta el eje x</div>
+            <div class="box-sub">${subGrafica}</div>
           </div>
           <label class="switch"><input type="checkbox" id="zoom" ${estado.zoom ? 'checked' : ''}> Enfocar iteración</label>
         </div>
         <div class="legend">
-          <span><i style="background:var(--curve)"></i>f(x)</span>
+          ${leyendaPrincipal || `<span><i style="background:var(--curve)"></i>f(x)</span>
           ${leyendaExtra}
           <span><i class="dot" style="background:var(--${color})"></i>xₙ₊₁</span>
-          <span><i class="dot" style="background:var(--muted)"></i>x anteriores</span>
+          <span><i class="dot" style="background:var(--muted)"></i>x anteriores</span>`}
         </div>
         <div class="plot-wrap"><canvas id="cMain"></canvas></div>
         <div class="stepper">
@@ -229,7 +263,7 @@ NA.raices.montarAbierto = function (root, cfg) {
       <div class="box">
         <div class="box-title">Rendimiento y comparación</div>
         <div class="box-sub">${comp
-          ? `Error real |xₖ − p| de cada método sobre la misma f (cada uno con su criterio de parada del apunte)`
+          ? (cfg.subComparar || `Error real |xₖ − p| de cada método sobre la misma f (cada uno con su criterio de parada)`)
           : `Agrega un intervalo [a, b] en los parámetros para comparar con regla falsa y bisección`}</div>
         ${comp ? `
           <div class="legend">
@@ -261,13 +295,11 @@ NA.raices.montarAbierto = function (root, cfg) {
         <div class="box-sub">Haz clic en una fila para verla en la gráfica</div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>n</th><th>xₙ</th><th>f(xₙ)</th>${usaDerivada ? '<th>f′(xₙ)</th>' : ''}<th>xₙ₊₁</th><th>eₙ₊₁</th></tr></thead>
+            <thead><tr>${cols.map(c => `<th>${c[0]}</th>`).join('')}</tr></thead>
             <tbody id="tbody">
               ${res.iter.map((it, i) => `
                 <tr data-k="${i}" class="${i === N - 1 && res.ok ? 'final' : ''}">
-                  <td>${it.n}</td><td>${NA.fmt(it.x, 14)}</td><td>${NA.fmt(it.fx, 6)}</td>
-                  ${usaDerivada ? `<td>${NA.fmt(it.dfx, 6)}</td>` : ''}
-                  <td>${NA.fmt(it.xn, 14)}</td><td>${NA.fmt(it.err, 5)}</td>
+                  ${cols.map(c => `<td>${c[1](it)}</td>`).join('')}
                 </tr>`).join('')}
             </tbody>
           </table>
@@ -279,7 +311,7 @@ NA.raices.montarAbierto = function (root, cfg) {
     const C = tm[color], Csoft = tm[colorSoft] || tm.s1soft;
 
     /* --- Gráfica principal --- */
-    const iterables = [estado.x0, ...res.iter.slice(0, 8).map(i => i.xn)].filter(x => isFinite(x) && Math.abs(x) < 1e6);
+    const iterables = estado.xsPropia.slice(0, 9).filter(x => isFinite(x) && Math.abs(x) < 1e6);
     const dominioGlobal = () => {
       let lo = Math.min(...iterables), hi = Math.max(...iterables);
       if (hi - lo < 1e-9) { lo -= 1; hi += 1; }
@@ -313,7 +345,7 @@ NA.raices.montarAbierto = function (root, cfg) {
         responsive: true, maintainAspectRatio: false,
         interaction: { mode: 'nearest', intersect: false },
         scales: (() => {
-          const s = NA.charts.ejes(tm, { xTitle: 'x', yTitle: 'f(x)' });
+          const s = NA.charts.ejes(tm, { xTitle: 'x', yTitle: cfg.yTitulo || 'f(x)' });
           s.x.ticks.callback = v => NA.fmt(v, 4); s.y.ticks.callback = v => NA.fmt(v, 4);
           return s;
         })(),
@@ -333,9 +365,12 @@ NA.raices.montarAbierto = function (root, cfg) {
       estado.k = k;
       const it = res.iter[k];
       const dom = estado.zoom ? dominioZoom(it) : dominioGlobal();
-      const { pts, ylo, yhi } = muestrear(dom);
-      const prevs = [estado.x0, ...res.iter.slice(0, k).map(p => p.xn)].map(x => ({ x, y: 0 }));
-      main.data.datasets = [
+      let { pts, ylo, yhi } = muestrear(dom);
+      const prevs = estado.xsPropia.slice(0, k + (segundo ? 2 : 1)).map(x => ({ x, y: 0 }));
+      if (graficaPrincipal) {
+        const g = graficaPrincipal({ it, k, res, estado, tm, C, dom, F });
+        main.data.datasets = g.datasets; ylo = g.ylo; yhi = g.yhi;
+      } else main.data.datasets = [
         { label: 'f(x)', data: pts, showLine: true, borderColor: tm.curve, borderWidth: 2, pointRadius: 0, pointHitRadius: 4, order: 5 },
         ...dibujarIteracion(it, tm, C, dom),
         { label: 'xₙ → f(xₙ)', data: [{ x: it.x, y: 0 }, { x: it.x, y: it.fx }], showLine: true, borderColor: tm.muted, borderWidth: 1.25, borderDash: [3, 3], pointRadius: 0, tip: false, order: 3 },
@@ -347,10 +382,10 @@ NA.raices.montarAbierto = function (root, cfg) {
       Object.assign(main.options.scales.y, { min: ylo, max: yhi });
       main.update('none');
       slider.value = k;
-      lbl.textContent = `n = ${it.n}`;
-      card.innerHTML = [
+      lbl.textContent = `${indice} = ${it.n}`;
+      card.innerHTML = (tarjeta ? tarjeta(it) : [
         ['xₙ', it.x, 14], ['f(xₙ)', it.fx, 8], ...(usaDerivada ? [['f′(xₙ)', it.dfx, 8]] : []), ['xₙ₊₁', it.xn, 14], ['eₙ₊₁', it.err, 6],
-      ].map(([k2, v, d]) => `<div><div class="k">${k2}</div><div class="v">${NA.fmt(v, d)}</div></div>`).join('');
+      ]).map(([k2, v, d]) => `<div><div class="k">${k2}</div><div class="v">${NA.fmt(v, d)}</div></div>`).join('');
       tbody.querySelectorAll('tr').forEach(tr => tr.classList.toggle('sel', +tr.dataset.k === k));
     };
     mostrar(Math.min(estado.k, N - 1));
@@ -435,7 +470,8 @@ NA.raices.montarAbierto = function (root, cfg) {
     if (comp) {
       // p de referencia: la aproximación con menor |f|
       const cands = [res, ...comp.map(c => c.res)].filter(r => r.ok).map(r => r.p);
-      const pRef = cands.length ? cands.reduce((m, p) => Math.abs(F.f(p)) < Math.abs(F.f(m)) ? p : m) : null;
+      const fc = estado.fc;
+      const pRef = cands.length ? cands.reduce((m, p) => Math.abs(fc(p)) < Math.abs(fc(m)) ? p : m) : null;
       if (pRef !== null) {
         const serieReal = xsArr => xsArr.map((x, k) => ({ x: k, y: Math.abs(x - pRef) })).filter(p => p.y > 0 && isFinite(p.y));
         const maxK = Math.max(estado.xsPropia.length, ...comp.map(c => c.xs.length)) - 1;
@@ -458,10 +494,10 @@ NA.raices.montarAbierto = function (root, cfg) {
     if (res.ok && orden.alpha !== null) {
       const a = orden.alpha;
       s += `Orden estimado α ≈ ${a.toFixed(2)}: ` + (a > 1.8 ? 'convergencia <b>cuadrática</b>, el número de cifras correctas se duplica en cada paso.'
-        : a > 1.15 ? 'convergencia <b>superlineal</b>.'
-        : 'convergencia <b>lineal</b> (típico de una raíz múltiple, donde f′(p) = 0).');
+        : a > 1.15 ? (cfg.textoSuperlineal || 'convergencia <b>superlineal</b>.')
+        : (typeof textoLineal === 'function' ? textoLineal(estado) : textoLineal));
     } else if (res.ok) s += 'Convergió en muy pocas iteraciones como para estimar el orden.';
-    else s += 'El método no convergió con este valor inicial; prueba con otro x₀ más cercano a la raíz.';
+    else s += cfg.textoFallo || `El método no convergió con este valor inicial; prueba con otro ${x0Label} más cercano a la raíz.`;
     if (comp) {
       const n = res.iter.length;
       const lineas = comp.map(c => `${c.nombre}: ${c.res.ok ? c.res.iter.length + ' iteraciones' : 'no convergió'}`);
